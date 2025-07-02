@@ -16,6 +16,8 @@
         }
         details[open] { border-color: #0ea5e9; }
         details summary { cursor: pointer; outline: none; }
+        .reviewed { border-color: #f59e0b; background-color: rgba(245, 158, 11, 0.05); }
+        .reviewed summary { background-color: rgba(245, 158, 11, 0.1); }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #1e293b; }
         ::-webkit-scrollbar-thumb { background: #0ea5e9; border-radius: 4px; }
@@ -37,27 +39,53 @@
 
     <!-- Painel Principal (Oculto) -->
     <div id="admin-panel" class="hidden max-w-7xl mx-auto p-4 md:p-8">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-8">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
             <div class="text-center md:text-left">
                 <h1 class="text-3xl md:text-4xl font-bold text-white">Painel do Administrador</h1>
                 <p class="text-sky-300">Equipes Inscritas no Torneio</p>
             </div>
-            <button id="refreshButton" class="mt-4 md:mt-0 bg-sky-500 hover:bg-sky-400 text-white font-bold py-2 px-5 rounded-lg shadow-lg transition-transform transform hover:scale-105 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V4a1 1 0 011-1zm10 8a1 1 0 011-1v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 111.885-.666A5.002 5.002 0 0014.001 13H11a1 1 0 010-2h5a1 1 0 011 1v5a1 1 0 01-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 111.885-.666A5.002 5.002 0 0014.001 13z" clip-rule="evenodd" /></svg>
-                <span>Atualizar</span>
-            </button>
+            <div class="flex gap-4">
+                <button id="autobalance-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-5 rounded-lg shadow-lg">Autobalanço</button>
+                <button id="refreshButton" class="bg-sky-500 hover:bg-sky-400 text-white font-bold py-2 px-5 rounded-lg shadow-lg flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V4a1 1 0 011-1zm10 8a1 1 0 011-1v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 111.885-.666A5.002 5.002 0 0014.001 13H11a1 1 0 010-2h5a1 1 0 011 1v5a1 1 0 01-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 111.885-.666A5.002 5.002 0 0014.001 13z" clip-rule="evenodd" /></svg>
+                    <span>Atualizar</span>
+                </button>
+            </div>
         </header>
         <main id="registrationsContainer" class="space-y-4">
             <div id="loadingState" class="text-center py-10"><p class="text-lg text-sky-300">Carregando inscrições...</p></div>
             <div id="emptyState" class="hidden text-center py-10 bg-slate-800/50 rounded-lg"><h3 class="text-xl font-semibold text-white">Nenhuma equipe inscrita ainda</h3><p class="text-gray-400 mt-2">Compartilhe o link do formulário para começar a receber inscrições.</p></div>
         </main>
     </div>
+    
+    <!-- Modal de Confirmação de Apagar -->
+    <div id="delete-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 rounded-lg shadow-xl p-8 max-w-sm text-center border border-red-500/50">
+            <h3 class="text-2xl font-bold text-white">Confirmar Ação</h3>
+            <p id="delete-modal-text" class="text-gray-300 mt-2 mb-6"></p>
+            <div class="flex justify-center gap-4">
+                <button id="cancel-delete" class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">Cancelar</button>
+                <button id="confirm-delete" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-lg">Apagar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Autobalanço -->
+    <div id="autobalance-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 rounded-lg shadow-xl p-8 max-w-3xl w-full text-center border border-indigo-500/50">
+            <h3 class="text-2xl font-bold text-white mb-6">Equipes Balanceadas</h3>
+            <div id="autobalance-results" class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+                <!-- Resultados serão inseridos aqui -->
+            </div>
+            <button id="close-autobalance" class="mt-8 bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-6 rounded-lg">Fechar</button>
+        </div>
+    </div>
+
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuração do Firebase com as suas chaves
         const firebaseConfig = {
           apiKey: "AIzaSyCU9b7wbEkJPHZbEV22OQYaneO1he3lWYI",
           authDomain: "torneio-ilha-do-spot.firebaseapp.com",
@@ -75,19 +103,14 @@
             console.error("Erro ao inicializar o Firebase.", e);
         }
 
-        // --- LÓGICA DA SENHA ---
+        const SENHA_SECRETA = "hey45120"; 
+
         const passwordScreen = document.getElementById('password-screen');
         const adminPanel = document.getElementById('admin-panel');
         const passwordInput = document.getElementById('password-input');
         const passwordSubmit = document.getElementById('password-submit');
         const passwordError = document.getElementById('password-error');
         
-        // **************************************************
-        //         DEFINA A SUA SENHA SECRETA AQUI
-        // **************************************************
-        const SENHA_SECRETA = "hey45120"; 
-        // **************************************************
-
         function unlockPanel() {
             if (passwordInput.value === SENHA_SECRETA) {
                 passwordScreen.style.display = 'none';
@@ -98,20 +121,23 @@
             }
         }
         passwordSubmit.addEventListener('click', unlockPanel);
-        passwordInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                unlockPanel();
-            }
-        });
+        passwordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') unlockPanel(); });
 
-        // --- LÓGICA DO PAINEL ---
         const container = document.getElementById('registrationsContainer');
         const loadingState = document.getElementById('loadingState');
         const emptyState = document.getElementById('emptyState');
         const refreshButton = document.getElementById('refreshButton');
+        const deleteModal = document.getElementById('delete-modal');
+        const cancelDeleteBtn = document.getElementById('cancel-delete');
+        const confirmDeleteBtn = document.getElementById('confirm-delete');
+        const deleteModalText = document.getElementById('delete-modal-text');
+        let teamIdToDelete = null;
+        let allTeamsData = [];
+
+        const eloMap = { "Ferro": 1, "Bronze": 2, "Prata": 3, "Ouro": 4, "Platina": 5, "Diamante": 6, "Ascendente": 7, "Imortal": 8, "Radiante": 9 };
 
         function createPlayerInfo(player, role) {
-            return `<div class="p-3 bg-slate-800 rounded-md"><p class="font-bold text-sky-400">${role}</p><p class="text-sm text-gray-300">${player.name || 'Não informado'}</p><p class="text-xs text-gray-400">Riot ID: ${player.riotId || 'Não informado'}</p><p class="text-xs text-gray-400">Discord: ${player.discordId || 'Não informado'}</p>${player.email ? `<p class="text-xs text-gray-400">Email: ${player.email}</p>` : ''}</div>`;
+            return `<div class="p-3 bg-slate-800 rounded-md"><p class="font-bold text-sky-400">${role}</p><p class="text-sm text-gray-300">${player.name || 'Não informado'}</p><p class="text-xs text-gray-400">Riot ID: ${player.riotId || 'Não informado'}</p><p class="text-xs text-gray-400">Discord: ${player.discordId || 'Não informado'}</p><p class="text-xs text-gray-400">Elo: ${player.elo || 'Não informado'}</p>${player.email ? `<p class="text-xs text-gray-400">Email: ${player.email}</p>` : ''}</div>`;
         }
 
         async function fetchRegistrations() {
@@ -120,6 +146,7 @@
             loadingState.style.display = 'block';
             emptyState.style.display = 'none';
             container.appendChild(loadingState);
+            allTeamsData = [];
 
             try {
                 const querySnapshot = await getDocs(collection(db, "registrations"));
@@ -133,12 +160,43 @@
 
                 querySnapshot.forEach(doc => {
                     const team = doc.data();
+                    let teamPower = 0;
+                    const mainPlayers = [team.captain, ...team.players];
+                    mainPlayers.forEach(p => {
+                        teamPower += eloMap[p.elo] || 0;
+                    });
+                    
+                    allTeamsData.push({ id: doc.id, ...team, teamPower });
+                    
                     const teamCard = document.createElement('details');
-                    teamCard.className = "bg-slate-900/70 border border-slate-700 rounded-lg transition hover:border-sky-500";
+                    teamCard.className = `bg-slate-900/70 border border-slate-700 rounded-lg transition hover:border-sky-500 ${team.isReviewed ? 'reviewed' : ''}`;
+                    teamCard.dataset.teamId = doc.id;
+                    
                     let playersHTML = createPlayerInfo(team.captain, 'Capitão');
                     team.players.forEach((player, index) => { playersHTML += createPlayerInfo(player, `Jogador ${index + 2}`); });
                     team.reserves.forEach(reserve => { playersHTML += createPlayerInfo(reserve, reserve.role); });
-                    teamCard.innerHTML = `<summary class="p-4 flex justify-between items-center"><div><h2 class="text-xl font-bold text-white">${team.teamName} [${team.teamTag}]</h2><p class="text-sm text-gray-400">Capitão: ${team.captain.name}</p></div><span class="text-sm text-sky-400 font-semibold">Ver Detalhes</span></summary><div class="p-4 border-t border-slate-700"><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">${playersHTML}</div></div>`;
+                    
+                    teamCard.innerHTML = `
+                        <summary class="p-4 flex justify-between items-center">
+                            <div>
+                                <h2 class="text-xl font-bold text-white">${team.teamName} [${team.teamTag}]</h2>
+                                <p class="text-sm text-gray-400">Capitão: ${team.captain.name} | Força da Equipe: ${teamPower}</p>
+                            </div>
+                            <span class="text-sm text-sky-400 font-semibold">Ver Detalhes</span>
+                        </summary>
+                        <div class="p-4 border-t border-slate-700">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
+                                ${playersHTML}
+                            </div>
+                            <div class="flex items-center justify-end gap-4 pt-4 border-t border-slate-800">
+                                <label class="flex items-center gap-2 cursor-pointer text-sm font-medium ${team.isReviewed ? 'text-amber-400' : 'text-gray-400'}">
+                                    <input type="checkbox" class="review-toggle w-4 h-4 rounded" ${team.isReviewed ? 'checked' : ''}>
+                                    Revisada
+                                </label>
+                                <button class="delete-btn text-sm font-medium text-red-500 hover:text-red-400">Apagar Equipe</button>
+                            </div>
+                        </div>
+                    `;
                     container.appendChild(teamCard);
                 });
             } catch (error) {
@@ -147,7 +205,85 @@
                 container.innerHTML = `<p class="text-center text-red-500">Ocorreu um erro ao carregar os dados.</p>`;
             }
         }
+
+        container.addEventListener('click', async (e) => {
+            const teamCard = e.target.closest('details');
+            if (!teamCard) return;
+            const teamId = teamCard.dataset.teamId;
+
+            if (e.target.classList.contains('review-toggle')) {
+                const isChecked = e.target.checked;
+                const teamDocRef = doc(db, "registrations", teamId);
+                try {
+                    await updateDoc(teamDocRef, { isReviewed: isChecked });
+                    teamCard.classList.toggle('reviewed', isChecked);
+                    e.target.closest('label').classList.toggle('text-amber-400', isChecked);
+                    e.target.closest('label').classList.toggle('text-gray-400', !isChecked);
+                } catch (err) { console.error("Erro ao atualizar status: ", err); alert("Não foi possível atualizar o status."); }
+            }
+
+            if (e.target.classList.contains('delete-btn')) {
+                const teamName = teamCard.querySelector('h2').textContent;
+                deleteModalText.textContent = `Tem a certeza de que quer apagar permanentemente a equipe "${teamName}"? Esta ação não pode ser desfeita.`;
+                teamIdToDelete = teamId;
+                deleteModal.style.display = 'flex';
+            }
+        });
+
+        cancelDeleteBtn.addEventListener('click', () => { deleteModal.style.display = 'none'; teamIdToDelete = null; });
+
+        confirmDeleteBtn.addEventListener('click', async () => {
+            if (!teamIdToDelete) return;
+            try {
+                await deleteDoc(doc(db, "registrations", teamIdToDelete));
+                deleteModal.style.display = 'none';
+                fetchRegistrations();
+            } catch (err) { console.error("Erro ao apagar equipe: ", err); alert("Não foi possível apagar a equipe."); }
+        });
+
         refreshButton.addEventListener('click', fetchRegistrations);
+
+        // --- LÓGICA DO AUTOBALANÇO ---
+        const autobalanceBtn = document.getElementById('autobalance-btn');
+        const autobalanceModal = document.getElementById('autobalance-modal');
+        const closeAutobalanceBtn = document.getElementById('close-autobalance');
+        const autobalanceResults = document.getElementById('autobalance-results');
+
+        autobalanceBtn.addEventListener('click', () => {
+            const reviewedTeams = allTeamsData.filter(team => team.isReviewed);
+            if (reviewedTeams.length < 2) {
+                alert("Precisa de pelo menos 2 equipes revisadas para fazer o autobalanço.");
+                return;
+            }
+
+            reviewedTeams.sort((a, b) => b.teamPower - a.teamPower);
+
+            const groupA = { teams: [], power: 0 };
+            const groupB = { teams: [], power: 0 };
+
+            reviewedTeams.forEach(team => {
+                if (groupA.power <= groupB.power) {
+                    groupA.teams.push(team);
+                    groupA.power += team.teamPower;
+                } else {
+                    groupB.teams.push(team);
+                    groupB.power += team.teamPower;
+                }
+            });
+
+            const createGroupHTML = (group, title) => {
+                let teamsHTML = group.teams.map(t => `<li class="flex justify-between"><span>${t.teamName}</span> <span class="font-mono">${t.teamPower}</span></li>`).join('');
+                return `<div><h4 class="text-lg font-bold text-white border-b border-slate-700 pb-2 mb-2">${title}</h4><ul class="space-y-1">${teamsHTML}</ul><p class="text-right font-bold mt-2 border-t border-slate-700 pt-2">Força Total: <span class="font-mono">${group.power}</span></p></div>`;
+            };
+
+            autobalanceResults.innerHTML = createGroupHTML(groupA, 'Grupo A') + createGroupHTML(groupB, 'Grupo B');
+            autobalanceModal.style.display = 'flex';
+        });
+
+        closeAutobalanceBtn.addEventListener('click', () => {
+            autobalanceModal.style.display = 'none';
+        });
+
     </script>
 </body>
 </html>
