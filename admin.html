@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Administrador - Inscrições</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a1024;
+            background-image: radial-gradient(circle at top right, rgba(56, 189, 248, 0.2), transparent 50%),
+                              radial-gradient(circle at bottom left, rgba(56, 189, 248, 0.15), transparent 60%);
+            background-attachment: fixed;
+        }
+        details[open] { border-color: #0ea5e9; }
+        details summary { cursor: pointer; outline: none; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #0ea5e9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #38bdf8; }
+    </style>
+</head>
+<body class="text-gray-200">
+
+    <!-- Tela de Senha -->
+    <div id="password-screen" class="flex items-center justify-center min-h-screen p-4">
+        <div class="w-full max-w-md text-center bg-slate-900/70 p-8 rounded-2xl shadow-lg border border-sky-500/50">
+            <h1 class="text-2xl font-bold text-white mb-4">Acesso Restrito</h1>
+            <p class="text-gray-400 mb-6">Por favor, insira a senha para aceder ao painel.</p>
+            <input type="password" id="password-input" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 mb-4 text-center focus:ring-2 focus:ring-sky-500 focus:outline-none">
+            <button id="password-submit" class="w-full bg-sky-500 hover:bg-sky-400 text-white font-bold py-2 px-5 rounded-lg">Entrar</button>
+            <p id="password-error" class="text-red-500 mt-4 text-sm hidden">Senha incorreta.</p>
+        </div>
+    </div>
+
+    <!-- Painel Principal (Oculto) -->
+    <div id="admin-panel" class="hidden max-w-7xl mx-auto p-4 md:p-8">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8">
+            <div class="text-center md:text-left">
+                <h1 class="text-3xl md:text-4xl font-bold text-white">Painel do Administrador</h1>
+                <p class="text-sky-300">Equipes Inscritas no Torneio</p>
+            </div>
+            <button id="refreshButton" class="mt-4 md:mt-0 bg-sky-500 hover:bg-sky-400 text-white font-bold py-2 px-5 rounded-lg shadow-lg transition-transform transform hover:scale-105 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V4a1 1 0 011-1zm10 8a1 1 0 011-1v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 111.885-.666A5.002 5.002 0 0014.001 13H11a1 1 0 010-2h5a1 1 0 011 1v5a1 1 0 01-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 111.885-.666A5.002 5.002 0 0014.001 13z" clip-rule="evenodd" /></svg>
+                <span>Atualizar</span>
+            </button>
+        </header>
+        <main id="registrationsContainer" class="space-y-4">
+            <div id="loadingState" class="text-center py-10"><p class="text-lg text-sky-300">Carregando inscrições...</p></div>
+            <div id="emptyState" class="hidden text-center py-10 bg-slate-800/50 rounded-lg"><h3 class="text-xl font-semibold text-white">Nenhuma equipe inscrita ainda</h3><p class="text-gray-400 mt-2">Compartilhe o link do formulário para começar a receber inscrições.</p></div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Configuração do Firebase com as suas chaves
+        const firebaseConfig = {
+          apiKey: "AIzaSyCU9b7wbEkJPHZbEV22OQYaneO1he3lWYI",
+          authDomain: "torneio-ilha-do-spot.firebaseapp.com",
+          projectId: "torneio-ilha-do-spot",
+          storageBucket: "torneio-ilha-do-spot.appspot.com",
+          messagingSenderId: "127869514911",
+          appId: "1:127869514911:web:0117b9e09f2d64aa83deaa"
+        };
+        
+        let db;
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+        } catch (e) {
+            console.error("Erro ao inicializar o Firebase.", e);
+        }
+
+        // --- LÓGICA DA SENHA ---
+        const passwordScreen = document.getElementById('password-screen');
+        const adminPanel = document.getElementById('admin-panel');
+        const passwordInput = document.getElementById('password-input');
+        const passwordSubmit = document.getElementById('password-submit');
+        const passwordError = document.getElementById('password-error');
+        
+        // **************************************************
+        //         DEFINA A SUA SENHA SECRETA AQUI
+        // **************************************************
+        const SENHA_SECRETA = "hey45120"; 
+        // **************************************************
+
+        function unlockPanel() {
+            if (passwordInput.value === SENHA_SECRETA) {
+                passwordScreen.style.display = 'none';
+                adminPanel.style.display = 'block';
+                fetchRegistrations();
+            } else {
+                passwordError.style.display = 'block';
+            }
+        }
+        passwordSubmit.addEventListener('click', unlockPanel);
+        passwordInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                unlockPanel();
+            }
+        });
+
+        // --- LÓGICA DO PAINEL ---
+        const container = document.getElementById('registrationsContainer');
+        const loadingState = document.getElementById('loadingState');
+        const emptyState = document.getElementById('emptyState');
+        const refreshButton = document.getElementById('refreshButton');
+
+        function createPlayerInfo(player, role) {
+            return `<div class="p-3 bg-slate-800 rounded-md"><p class="font-bold text-sky-400">${role}</p><p class="text-sm text-gray-300">${player.name || 'Não informado'}</p><p class="text-xs text-gray-400">Riot ID: ${player.riotId || 'Não informado'}</p><p class="text-xs text-gray-400">Discord: ${player.discordId || 'Não informado'}</p>${player.email ? `<p class="text-xs text-gray-400">Email: ${player.email}</p>` : ''}</div>`;
+        }
+
+        async function fetchRegistrations() {
+            if (!db) return;
+            container.innerHTML = '';
+            loadingState.style.display = 'block';
+            emptyState.style.display = 'none';
+            container.appendChild(loadingState);
+
+            try {
+                const querySnapshot = await getDocs(collection(db, "registrations"));
+                loadingState.style.display = 'none';
+
+                if (querySnapshot.empty) {
+                    emptyState.style.display = 'block';
+                    container.appendChild(emptyState);
+                    return;
+                }
+
+                querySnapshot.forEach(doc => {
+                    const team = doc.data();
+                    const teamCard = document.createElement('details');
+                    teamCard.className = "bg-slate-900/70 border border-slate-700 rounded-lg transition hover:border-sky-500";
+                    let playersHTML = createPlayerInfo(team.captain, 'Capitão');
+                    team.players.forEach((player, index) => { playersHTML += createPlayerInfo(player, `Jogador ${index + 2}`); });
+                    team.reserves.forEach(reserve => { playersHTML += createPlayerInfo(reserve, reserve.role); });
+                    teamCard.innerHTML = `<summary class="p-4 flex justify-between items-center"><div><h2 class="text-xl font-bold text-white">${team.teamName} [${team.teamTag}]</h2><p class="text-sm text-gray-400">Capitão: ${team.captain.name}</p></div><span class="text-sm text-sky-400 font-semibold">Ver Detalhes</span></summary><div class="p-4 border-t border-slate-700"><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">${playersHTML}</div></div>`;
+                    container.appendChild(teamCard);
+                });
+            } catch (error) {
+                console.error("Erro ao buscar inscrições: ", error);
+                loadingState.style.display = 'none';
+                container.innerHTML = `<p class="text-center text-red-500">Ocorreu um erro ao carregar os dados.</p>`;
+            }
+        }
+        refreshButton.addEventListener('click', fetchRegistrations);
+    </script>
+</body>
+</html>
